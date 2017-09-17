@@ -5,10 +5,10 @@ eecaams contents-
 1.src
 2.sample_out
 
-Code-
+src -
 stage3.cpp and stage4.cpp are main files,others are header files and input configuration files.
 
-Outputs-
+sample_out-
 Genetic and Evolutionary outputs for 10 generations
 
 how to execute:-
