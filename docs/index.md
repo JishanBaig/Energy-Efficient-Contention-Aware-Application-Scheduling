@@ -1,5 +1,6 @@
 
-Introduction
+## Introduction
+
 Now a days due to the smaller size of the processors, one MPSoC contains several number of processors. Previously on chip buses were used to communicate between them but now Network on chip is used to make proper communication between them. 
 Energy consumption and execution time both are very critical issues regarding the application scheduling. Till now most of the work done in this area was more focused towards processors energy consumption during the execution of the application tasks. Less amount of work has been done in communication energy dissipation due task communication dependencies. Communication is done through the NoC links on an on chip processor network. This plays significant amount of role in total energy dissipation during application DAG execution. Modern processors are actually improved with dynamic voltage and frequency scaling technique (DVFS). In this technique, processors’ voltage or frequency level can be changed dynamically so that it can be set up according to its utilization. Using this technique energy dissipation during task execution can be saved effectively. But communication energy dissipation can not be ignored because of its significant value. So including processors and NoC communication link energy dissipation , we aim to minimize total energy consumption during complete application DAG execution. With this problem we need to solve the problem of contention over both processors and communication links. Contention implies to a situation where no two tasks can be assigned to the same processor at the same time and no two communications can have a common NoC link between them. Contention is a very serious problem and it can lead to wrong execution of the application graph. That’s why we also need to take care of contention situation. To solve this problem, we use application mapping and later application scheduling problem with optimal voltage and frequency assignment. Following figure shows general NoC architecture. As you can see, it’s a two dimensional 3X3 mesh network. Every processor has its own router to communicate with nearby other processors through NoC links which are bidirectional links.
 
@@ -75,7 +76,11 @@ Thus total volume is sorted in nonincreasing order and high priority will be giv
 
 As shown in above equation i1 is selected in first iteration thus for the next iteration it is removed from the optimization problem. Iteratively every task will be selected for the mapping and at the end of the algorithm,  every row in the mp matrix will have exactly one value as set. The index of that set value represents the processor id on which the task is allocated for the execution.
 
+
+![](.\Picture3.png)
+
 Fig.3 - Flowchart for RIRAM algorithm
+
 Energy Efficient Contention Aware Application Scheduling
 after mapping is done, we need to schedule the tasks and decide the order of task and communication execution order.order is decide in such a way that there should not be any contention among tasks and communication links.the order must follow the dependency order provided by application DAG. the finish time of last exit node will be the total finish time of complete application.the original application graph contains tasks and communication nodes. to implement our modified ETF scheduling algorithm the original application graph is changed into a transformed application graph that contains unified nodes. every task and communication is changed as unified node in transformed graph.the cost of task node becomes weight of corresponding unified node and the volume of communication node becomes weight of its corresponding unified node.the deadline of the application should also be taken care of by scheduling algorithm.thus the total finish time of the application must be less than or equal to the 
 deadline of the application. 
@@ -87,11 +92,16 @@ Fig. - 4  (a) original application DAG with task nodes with their costs and with
 The problem of contention is also resolved by this algorithm. It checks for the contention situation between two communication nodes.for this, it checks for the common NoC links present between the scheduled communication node and all other communication node. If there is any noc link which is common then the other communication node is added as a child to the scheduled communication node. Because it’s basically causing dependency. Because of this they can not be executed concurrently. They have to schedule one after another. For the path selection xy routing is used which prefers x over y. Thus every communication link has fixed Noc links to travell with its communication volume. Figure 5 shows an example of the complete execution of ETFGBF scheduling algorithm. All tasks and communications ready and finish times are calculated. As we can see communication link  from 1 to 4 have contention with the communication link 1 to 2. That’s why they can not execute concurrently and 1 to 4 is scheduled after 1 to 2 communication. 
 
 
+![](.\Picture5.png)
 Fig.5 - Setting up for ETFGBF algorithm
+
 The total completion time for the application execution in the example is 216. ETFGBF algorithm also calculates total energy consumption by the application (including processor’s and communication) according to the voltage and frequency assignment. Fig. 5 and 6 shows the complete flow chart for the ETFGBF algorithm.  
 
 
+![](.\Picture6.png)
+
 Fig. 6 - ETFGBF Scheduling algorithm
+
 Genetic Algorithm for Voltage and Frequency Assignment 
 Genetic algorithms are used to find the best solution in the solution search space. A fitness value is calculated in every generation for every sample. The samples having the best fitness values are chosen for the next generation and also chosen to become parent to produce new samples for next generation. Our aim is to find optimal value of voltage and frequency to assign to the processors and communication links respectively. For this purpose we take many sample values and for all of them we execute ETFGBF scheduling algorithm. A sample contains voltage levels to assign to processors and then frequency values to assign to communication links. Thus a sample in our case looks like the following.
  
@@ -105,19 +115,30 @@ The second technique to create new samples from best fitness samples is mutation
 The complete process is given in algorithm 3. The application graph (T, E) and sample solution assignment is given to the ETFGBF algorithm. It will return the application finish time and the energy consumption after execution. The crossover used in GAVFA algorithm is single point crossover. Single point crossover means there is only one locus , that is used to swap the elements of the samples. In mutation process, a maximum value MAX_VAL ( 1000 is used in this case) is required to complement the values present on the randomly chosen locus. The normalization of frequency and voltage values is required because of this randomization in genetic algorithm so that unexpected results won’t come and the number of generations taken to get a good fitness value is not more. Randomization is involved in the complete sample values in the corresponding sample. Every element in the sample has equal probability of getting selected for the complementation in the mutation process. The effect of crossover is more, because more elements are involved in the process. Mutation does not affect the sample value and thus the fitness value of the sample. The following flowchart shows the complete process for GAVFA algorithm
 .
 
+
+![](.\Picture7.png)
+
 Fig.7 - GAVFA algorithm
+
 Evolutionary Programming for Voltage and Frequency Assignment
 Only mutation, no crossover is applied in evolutionary programming technique. Thus only complementation of the element at randomly chosen locus is done to create new sample. All the other steps are same as in GAVFA algorithm. The following flowchart shows the complete process of evolutionary programming (EPVFA).  
 
 
+![](.\Picture8.png)
+
 Fig. 8 - EPVFA algorithm
+
 Analysis and Comparison
 Initial application mapping algorithm solves the binary quadratic problem as a convex optimization problem. For every task in N tasks in the sorted volume set, it runs the number of tasks i.e. N times to set the corresponding row in the map matrix. Thus its overall time is O(N^2). Then application scheduling algorithm require transformation and b-level of all the unified nodes. Transformation of the original application graph takes O(N+E) time. For b-level calculation, a recursive algorithm is used on the transformed DAG. It may traverse all other nodes for every node b-level calculation in worst case. Thus it takes O(N+E) time. 
 In ETFGBF scheduling algorithm step 6 takes linear time, step 7 takes O((N+E)^2) time because for every children all of its parents are checked and step 8 takes O((sqrt(M))(N+E)^2)) time in worst case. Here sqrt(M) is basically the number of NoC links two communication links may have in common. All the above steps are done for every unified node in the transformed graph. Thus the overall time complexity for the ETFGBF scheduling will be O((sqrt(M))(N+E)^3) in worst case. The overall model implementation time will be the time taken by genetic algorithm or evolutionary programming (both will take same time asymptotically). For genetic algorithm, the number of samples for which ETFGBF scheduling algorithm is applied, are constant. Suppose genetic algorithm runs for P number of generations. Application mapping algorithm will run initially to map the tasks on processors. In every generation, scheduling algorithm will run constant number of times. For calculating fitness values and sorting, it takes O((N+E)log(N+E)) time. For the crossover and mutation , it takes O(N+E) time in worst case. Thus the overall time for the model will be  P*(O((N+E)log(N+E))+O((sqrt(M))(N+E)^3)) which is equal to O(P*(sqrt(M))*(N+E)^3). Where P is the number of generations, M is the number of processors, N is the number of tasks and E is the number of communication links.
 Comparison
 Both genetic algorithm and evolutionary programming take asymptotically same time. But on computing machine evolutionary programming takes less time. Because evolutionary programming does not do crossover between the best samples in a generation. It only does mutations to create new samples.Genetic algorithm does both crossovers and mutations. So for the same number of generations , evolutionary programming takes less time than genetic algorithm with significant amount of time difference.if we increase the number of generations, this time difference increae significantly.the following plot shows the significant time difference between these two algorithms.
 
+
+![](.\Picture9.png)
+
 Fig. 9 - Time comparison plot between GAVFA and EPVFA algorithms 
+
 Key observation is that if we consider same time for both the algorithms then evolutionary programming will able to run more for number of generations.that means it will get chance to converge fitness value more number of times. Thus fitness value obtained by evolutionary programming will be more than by genetic algorithm. Thus we can get more fit sample, in our case which is the optimal voltage and frequency assignment.
 Conclusion and Future Scope
 The solution model presented in this paper works efficiently for simple and complex application graphs. It works for mesh architecture of any number of processors. For the future scope, the number of assumptions taken into consideration can be removed and model can be made more complex. The model presented in this paper can be tested for wide variety of complex real life graphs. To check the contention among communication links, xy routing is considered to make the problem simple. But in real life situations, this constraint is not feasible. Many complex routing algorithms can be used in place of xy routing. The algorithm can also be provided to find the contention in that situation. It will make contention awareness more difficult to achieve. The complexity of ETFGBF algorithm may increase by adding this feature. For the relaxation based iterative rounding algorithm, initial mappings of tasks to processors are required. These initial mappings should also be taken by applying some heuristic. The same way for genetic algorithm and evolutionary programming the initial samples are required. These initial samples affect the convergence rate towards the actual solution. Thus initial must be closer to the actual solution. For this purpose benchmark frequency and voltage assignment can be used.
